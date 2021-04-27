@@ -35,6 +35,7 @@ $routes->setAutoRoute(true);
 $routes->get('/', 'Home::index');
 $routes->get('/contatos', 'Home::contatos');
 $routes->get('/contato', 'Home::contato');
+$routes->get('/contato/(:any)', 'Home::contato/$1');
 
 /*
  * --------------------------------------------------------------------
