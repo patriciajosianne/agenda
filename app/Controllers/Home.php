@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ContatoModel;
+use App\Models\TipoContatoModel;
 
 /**
  * Classe responsável por carregar a estrutura do app
@@ -11,10 +12,17 @@ class Home extends BaseController
 {
 	protected $data;
 	protected $modelContato;
+	protected $modelTipo;
 
 	public function __construct()
 	{
 		$this->modelContato = new ContatoModel();
+		$this->modelTipo = new TipoContatoModel();
+
+		$this->data['title'] = 'Agenda';
+		$this->data['tipos'] = $this->modelTipo->findAll();
+		$this->data['msg'] = session()->getFlashdata('msg');
+		$this->data['erros'] = session()->getFlashdata('erros');
 	}
 	
 	public function index(): void 
@@ -29,60 +37,76 @@ class Home extends BaseController
 	{
 		$this->data['title'] = "Contatos";
 
-		$contatos = $this->modelContato->findAll();
-		dd($contatos);
+		$data['contatos'] =  $this->modelContato->findAll();
 
-		$this->data['conteudo'] = view('home/contatos');
+		$this->data['conteudo'] = view('home/contatos', $data);
 
 		$this->modelo();
-	}
-
-	public function gravar(): void
-	{
-		$contato = [
-			'nome' 		      => 'M',
-			'tipo_contato_id' => 1,
-			'telefone'        => '3',
-			'celular'         => '389',
-			'email' 	      => 'patricia.silva',
-		];
-
-		if($this->modelContato->save($contato) === false){
-			$erros = $this->modelContato->errors();
-
-			echo "<h1>Erro ao tentar salvar</h1>";
-			echo "<br>";
-			echo "<br>";
-			foreach($erros as $field => $error){
-				echo "Campo: {$field}<br>";
-				echo "Mensagem: {$error}<br>";
-				echo "<br>";
-			}
-		} else {
-			echo "<h1>Salvo com sucesso.</h1>";
-		}
 	}
 
 	public function contato($slug = null): void
 	{
-		$this->data['title'] = "Contato {$slug}";
-		$this->data['slug'] = $slug;
-		$this->data['conteudo'] = view('home/contato', $this->data);
+		$this->data['contato'] = $this->modelContato->find($slug);
+		$this->data['title'] = "Contato {$data['contato']['nome']}";
+		$this->data['conteudo'] = view('home/contato', $data);
 
 		$this->modelo();
 	}
 
+	public function formulario($id = null)
+	{
+		$this->data['title'] = "Novo Contato";
+
+		if($this->request->getPost()){
+			// se existir POST captura os dados enviados pelo formulario
+			$this->data['contato'] = $this->request->getPost();
+		}else if($id){
+			// se existir ID, realiza a busca e carrega os dados
+			$this->data['contato'] = $this->modelContato->find($id);
+		} else {
+			// se nada for passado, cria o array 
+			$this->data['contato'] = ['id' => null, 'nome' => null, 'tipo_contato_id' => null, 'celular' => null, 'telefone' => null, 'email' => null];
+		}
+		// renderiza o conteudo
+		$this->data['conteudo'] = view('home/novo', $this->data);
+		// carrega o template
+		$this->modelo();
+	}
+
+	public function gravar()
+	{
+		$this->data['contato'] = $this->request->getPost();
+		
+		if($this->modelContato->save($this->data['contato']) === false){
+			$erros = $this->modelContato->errors();
+			session()->setFlashdata('erros', $erros);
+			// carrega o ID
+			$id = $this->request->getPost('id');
+			// verifica se ID esta preenchido
+			if($id){
+				return redirect()->to("editar/{$id}");
+			} else {
+				return redirect()->to('novo');
+			}
+		} else {
+			session()->setFlashdata('msg', "Gravado com Sucesso");
+			return redirect()->to('contatos'); 
+		}
+	}
+
 	private function modelo(): void 
 	{
+		// itens do menu
 		$menu['menus'] = [
 			'Home' => base_url(),
 			'Contatos' => base_url('contatos'),
-			'Contato' => base_url('contato')
-		];		
-		$this->data['menu'] = view('home/padrao/menu', $menu, ['cache' => 60]);
+			'Novo' => base_url('novo'),
+		];
+		// carrega o menu
+		$this->data['menu'] = view('home/padrao/menu', $menu);
 		
 		$this->data['versao'] = "0.0.1";
-
+		// renderiza a view
 		echo view('home/padrao/modelo', $this->data);
 	}
 }

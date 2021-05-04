@@ -34,8 +34,10 @@ $routes->setAutoRoute(true);
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::index');
 $routes->get('/contatos', 'Home::contatos');
-$routes->get('/contato', 'Home::contato');
 $routes->get('/contato/(:any)', 'Home::contato/$1');
+$routes->get('/novo', 'Home::formulario');
+$routes->get('/editar/(:any)', 'Home::formulario/$1');
+$routes->post('/gravar', 'Home::gravar');
 
 /*
  * --------------------------------------------------------------------
