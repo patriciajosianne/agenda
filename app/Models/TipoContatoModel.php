@@ -10,8 +10,7 @@ class TipoContatoModel extends Model
 	protected $table                = 'tipos_contato';
 	protected $primaryKey           = 'id';
 	protected $returnType           = 'array';
-	protected $useSoftDelete        = true;
-	protected $protectFields        = true;
+	protected $useSoftDeletes       = true;
 	protected $allowedFields        = ['nome'];
 
 	// Dates

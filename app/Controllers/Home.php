@@ -33,20 +33,31 @@ class Home extends BaseController
 		$this->modelo();
 	}
 
-	public function contatos(): void
+	public function contatos($excluido = false): void
 	{
-		$this->data['title'] = "Contatos";
+		if($excluido) {
+			$this->data['title'] = "Lixeira";
+			$data['title'] = "Lixeira | Contatos Excluídos";
+		} else {
+			$this->data['title'] = "Contatos";
+			$data['title'] = "Listagem de contatos";
+		}
 
-		$data['contatos'] =  $this->modelContato->findAll();
+		$data['contatos'] =  $this->modelContato->getContatos(null, $excluido);
 
 		$this->data['conteudo'] = view('home/contatos', $data);
 
 		$this->modelo();
 	}
 
-	public function contato($slug = null): void
+	public function excluidos()
 	{
-		$this->data['contato'] = $this->modelContato->find($slug);
+		$this->contatos(true);
+	}
+
+	public function contato($id = null): void
+	{
+		$data['contato'] = $this->modelContato->getContatos($id);
 		$this->data['title'] = "Contato {$data['contato']['nome']}";
 		$this->data['conteudo'] = view('home/contato', $data);
 
@@ -56,10 +67,11 @@ class Home extends BaseController
 	public function formulario($id = null)
 	{
 		$this->data['title'] = "Novo Contato";
-
-		if($this->request->getPost()){
+		
+		$contatoPost = session()->getFlashdata('contato');
+		if(!empty($contatoPost)){
 			// se existir POST captura os dados enviados pelo formulario
-			$this->data['contato'] = $this->request->getPost();
+			$this->data['contato'] = $contatoPost;
 		}else if($id){
 			// se existir ID, realiza a busca e carrega os dados
 			$this->data['contato'] = $this->modelContato->find($id);
@@ -78,8 +90,9 @@ class Home extends BaseController
 		$this->data['contato'] = $this->request->getPost();
 		
 		if($this->modelContato->save($this->data['contato']) === false){
-			$erros = $this->modelContato->errors();
-			session()->setFlashdata('erros', $erros);
+			session()->setFlashdata('erros', $this->modelContato->errors());
+			//captura dados enviados via post
+			session()->setFlashdata('contato', $this->data['contato']);
 			// carrega o ID
 			$id = $this->request->getPost('id');
 			// verifica se ID esta preenchido
@@ -89,9 +102,33 @@ class Home extends BaseController
 				return redirect()->to('novo');
 			}
 		} else {
-			session()->setFlashdata('msg', "Gravado com Sucesso");
+			session()->setFlashdata('msg', "Gravado com Sucesso!");
 			return redirect()->to('contatos'); 
 		}
+	}
+
+	public function excluir($id)
+	{
+		if($this->modelContato->delete($id)){
+			session()->setFlashdata('msg', 'Exclusão realizada com sucesso!');
+		} else {
+			session()->setFlashdata('msg', 'Erro ao tentar realizar a operação!');
+		}
+		return redirect()->back();
+	}
+
+	public function desfazer($id)
+	{
+		$data = [
+			'apagado_em' => null,
+		];
+
+		if($this->modelContato->update($id, $data)){
+			session()->setFlashdata('msg', 'Exclusão desfeita.');
+		} else {
+			session()->setFlashdata('msg', 'Erro ao tentar realizar a operação!');
+		}
+		return redirect()->back();
 	}
 
 	private function modelo(): void 
@@ -101,6 +138,7 @@ class Home extends BaseController
 			'Home' => base_url(),
 			'Contatos' => base_url('contatos'),
 			'Novo' => base_url('novo'),
+			'Lixeira' => base_url('lixeira'),
 		];
 		// carrega o menu
 		$this->data['menu'] = view('home/padrao/menu', $menu);

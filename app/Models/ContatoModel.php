@@ -7,9 +7,10 @@ use CodeIgniter\Model;
 class ContatoModel extends Model
 {
 	protected $table                = 'contatos';
+	protected $primaryKey           = 'id';
 	protected $returnType           = 'array';
-	protected $useSoftDelete        = true;
-	protected $allowedFields        = ['nome', 'tipo_contato_id', 'telefone', 'celular', 'email'];
+	protected $useSoftDeletes       = true;
+	protected $allowedFields        = ['nome', 'tipo_contato_id', 'telefone', 'celular', 'email', 'apagado_em'];
 
 	// Dates
 	protected $useTimestamps        = true;
@@ -28,10 +29,25 @@ class ContatoModel extends Model
 	];
 	protected $validationMessages   = [
 		'nome' => [
-			'required'    => 'O Nome é obrgatório',
-			'min_length'  => 'Informe o Nome com mais de 3 caracteres',
+			'required'    => 'O Nome é obrigatório',
+			//'min_length'  => 'Informe o Nome com mais de 3 caracteres',
 			'max_length'  => 'Informe o Nome com menos de 45 caracteres',
 		]
 	];
+
+	public function getContatos(int $id = null, bool $excluido = false)
+	{
+		$this->select('contatos.*, t.nome as tipo')
+			 ->join('tipos_contato t', 'tipo_contato_id = t.id');
+				
+		if($id) {
+			return $this->find($id);
+		} else {
+			if($excluido) {
+				$this->onlyDeleted();
+			}
+			return $this->findAll();
+		}
+	}
 
 }
