@@ -46,7 +46,7 @@ class ContatoModel extends Model
 			if($excluido) {
 				$this->onlyDeleted();
 			}
-			return $this->findAll();
+			return $this->orderBy('nome')->paginate(4);
 		}
 	}
 
