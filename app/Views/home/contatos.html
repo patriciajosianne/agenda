@@ -1,4 +1,7 @@
-<div class="card">
+{% extends "home/padrao/modelo.html" %}
+
+{% block conteudo %}
+  <div class="card">
     <div class="card-header">
       <h1 class="card-title">{{ title }}</h1>
     </div>
@@ -10,11 +13,6 @@
               <th>#</th>
               <th>Tipo</th>
               <th>Nome</th>
-              <th>Telefone</th>
-              <th>Celular</th>
-              <th>Email</th>
-              <th>Cadastrado</th>
-              <th>Atualizado</th>
               <th>Opções</th>
             </tr>
           </thead>
@@ -25,24 +23,19 @@
               <td>{{ contato.id }}</td>
               <td>{{ contato.tipo }}</td>
               <td>{{ contato.nome }}</td>
-              <td>{{ contato.telefone }}</td>
-              <td>{{ contato.celular }}</td>
-              <td>{{ contato.email }}</td>
-              <td>{{ contato.criado_em|date("d/m/Y")  }}</td>
-              <td>{{ contato.atualizado_em|date("d/m/Y")  }}</td>
               <td>
                 {% if contato.apagado_em %}
-                  <a class="btn btn-sm btn-success" href="{{base_url}}/desfazer/{{contato.id}}">
+                  <a class="btn btn-sm btn-success" href="{{base_url ~ '/desfazer/' ~ contato.id}}">
                     <i class="fas fa-trash-restore"></i>
                   </a>
                 {% else %}
-                  <a class="btn btn-sm btn-primary" href="{{base_url}}/visualizar/{{contato.id}}">
+                  <a class="btn btn-sm btn-primary" href="{{base_url ~ '/visualizar/' ~ contato.id}}">
                     <i class="fas fa-search"></i>
                   </a>
-                  <a class="btn btn-sm btn-warning text-white" href="{{base_url}}/editar/{{contato.id}}">
+                  <a class="btn btn-sm btn-warning text-white" href="{{base_url ~ '/editar/' ~ contato.id}}">
                     <i class="fas fa-pencil-alt"></i>
                   </a>
-                  <a class="btn btn-sm btn-danger" href="{{base_url}}/excluir/{{contato.id}}">
+                  <a class="btn btn-sm btn-danger" href="{{base_url ~ '/excluir/' ~ contato.id}}">
                     <i class="fas fa-trash-alt"></i>
                   </a>
                 {% endif %}
@@ -58,3 +51,4 @@
       </div>
     </div>
   </div>
+{% endblock %}

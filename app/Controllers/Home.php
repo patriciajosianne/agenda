@@ -7,7 +7,6 @@ use App\Models\TipoContatoModel;
 
 class Home extends BaseController
 {
-	protected $data;
 	protected $modelContato;
 	protected $modelTipo;
 	
@@ -20,40 +19,44 @@ class Home extends BaseController
 		$this->data['tipos'] = $this->modelTipo->findAll();
 		$this->data['msg'] = session()->getFlashdata('msg');
 		$this->data['erros'] = session()->getFlashdata('erros');
+		$this->data['base_url'] = base_url();
+
+		// itens do menu
+		$this->data['menus'] = [
+			'Home' => base_url(),
+			'Contatos' => base_url('contatos'),
+			'Novo' => base_url('novo'),
+			'Lixeira' => base_url('lixeira'),
+		];
+		$this->data['versao'] = "0.0.1";
 	}
 	
-	public function index(): void
+	public function index()
 	{
 		$this->data['title'] = "Home";
 		// renderiza o conteudo
-		$this->data['conteudo'] = view('home/index');
-		// carrega o template
-		$this->modelo();
+		return $this->view->render('home/index.html', $this->data);
 	}
 	
 	/**
 	 * Metodo para listar os contatos
 	 */
-	public function contatos($excluido = false): void
+	public function contatos($excluido = false)
 	{
 		if($excluido){
-			$this->data['title'] = "Lixeira";
-			$data['title'] = "Lixeira | Contatos Excluidos";
+			$this->data['title'] = "Lixeira | Contatos Excluidos";
 		} else {
-			$this->data['title'] = "Contatos";
-			$data['title'] = "Listagem de contatos";
+			$this->data['title'] = "Listagem de Contatos";
 		}
 		// carrega a lista de contatos
-		$data['contatos'] = $this->modelContato->getContatos(null, $excluido); 
-		$data['pager'] = $this->modelContato->pager->links();
+		$this->data['contatos'] = $this->modelContato->getContatos(null, $excluido); 
+		$this->data['pager'] = $this->modelContato->pager->links();
 		
-		$data['base_url'] = base_url();
-		$data['excluido'] = $excluido;
+		$this->data['base_url'] = base_url();
+		$this->data['excluido'] = $excluido;
 
 		// renderiza o conteudo
-		$this->data['conteudo'] = $this->view->render('home/contatos.html', $data);
-		// carrega o template
-		$this->modelo();
+		return $this->view->render('home/contatos.html', $this->data);
 	}
 
 	/**
@@ -61,22 +64,20 @@ class Home extends BaseController
 	 */
 	public function excluidos()
 	{
-		$this->contatos(true);
+		return $this->contatos(true);
 	}
 	
 	/**
 	 * Metodo para exibir o contato
 	 */
-	public function contato($id = null): void
+	public function contato($id = null)
 	{
 		// carrega o contato
-		$data['contato'] = $this->modelContato->getContatos($id); 
+		$this->data['contato'] = $this->modelContato->getContatos($id); 
 		// altera o title da pagina
-		$this->data['title'] = "Contato {$data['contato']['nome']}";
+		$this->data['title'] = "Contato {$this->data['contato']['nome']}";
 		// renderiza o conteudo
-		$this->data['conteudo'] = view('home/contato', $data);
-		// carrega o template
-		$this->modelo();
+		return $this->view->render('home/contato.html', $this->data);
 	}
 	
 	/**
@@ -98,10 +99,8 @@ class Home extends BaseController
 			// se nada for passado, cria o array 
 			$this->data['contato'] = ['id' => null, 'nome' => null, 'tipo_contato_id' => null, 'celular' => null, 'telefone' => null, 'email' => null];
 		}
-		// renderiza o conteudo
-		$this->data['conteudo'] = view('home/formulario', $this->data);
-		// carrega o template
-		$this->modelo();
+	
+		return $this->view->render('home/formulario.html', $this->data);
 	}
 
 	/**
@@ -158,23 +157,4 @@ class Home extends BaseController
 		return redirect()->back(); 
 	}
 
-	/**
-	 * Metodo que contem o modelo do layout
-	 */
-	private function modelo(): void
-	{
-		// itens do menu
-		$menu['menus'] = [
-			'Home' => base_url(),
-			'Contatos' => base_url('contatos'),
-			'Novo' => base_url('novo'),
-			'Lixeira' => base_url('lixeira'),
-		];
-		// carrega o menu
-		$this->data['menu'] = view('home/padrao/menu', $menu);
-		
-		$this->data['versao'] = "0.0.1";
-		// renderiza a view
-		echo view('home/padrao/modelo', $this->data);
-	}
 }
